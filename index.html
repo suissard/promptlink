@@ -1,154 +1,168 @@
-import React, { useState, useEffect } from 'react';
-import { Copy, ExternalLink, Check, Sparkles, AlertTriangle } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt ➡️ ChatGPT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans text-slate-200">
 
-const CHATGPT_URL = 'https://chatgpt.com/?q=';
-const MAX_LENGTH = 7730;
-
-export default function App() {
-  const [prompt, setPrompt] = useState('');
-  const [generatedLink, setGeneratedLink] = useState('');
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (prompt.trim() === '') {
-      setGeneratedLink('');
-      return;
-    }
-    const encodedPrompt = encodeURIComponent(prompt);
-    setGeneratedLink(`${CHATGPT_URL}${encodedPrompt}`);
-  }, [prompt]);
-
-  const handleChange = (e) => {
-    const newVal = e.target.value;
-    const diff = newVal.length - prompt.length;
-    
-    setPrompt(newVal);
-
-    // Détection d'un collage massif (> 20 caractères ajoutés d'un coup)
-    if (diff > 20) {
-      const newLink = CHATGPT_URL + encodeURIComponent(newVal);
-      // Ouvre seulement si la limite n'est pas dépassée
-      if (newLink.length <= MAX_LENGTH) {
-        window.open(newLink, '_blank', 'noopener,noreferrer');
-      }
-    }
-  };
-
-  const isOverLimit = generatedLink.length > MAX_LENGTH;
-
-  const handleCopy = () => {
-    if (!generatedLink || isOverLimit) return;
-    navigator.clipboard.writeText(generatedLink).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
-      const textArea = document.createElement("textarea");
-      textArea.value = generatedLink;
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (e) {
-        console.error("Échec de la copie", e);
-      }
-      document.body.removeChild(textArea);
-    });
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans text-slate-200">
-      <div className="w-full max-w-2xl bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-700">
+    <div class="w-full max-w-2xl bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-700">
         
-        {/* Header */}
-        <div className="bg-slate-800/50 p-6 border-b border-slate-700 flex items-center gap-3">
-          <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
-            <Sparkles size={24} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">Prompt ➡️ ChatGPT</h1>
-            <p className="text-sm text-slate-400">Collez un texte long, il s'ouvrira automatiquement ! ⚡</p>
-          </div>
+        <!-- Header -->
+        <div class="bg-slate-800/50 p-6 border-b border-slate-700 flex items-center gap-3">
+            <div class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-white">Prompt ➡️ ChatGPT</h1>
+                <p class="text-sm text-slate-400">Collez un texte long, il s'ouvrira automatiquement ! ⚡</p>
+            </div>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Saisie du prompt */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <label className="block text-sm font-medium text-slate-300">
-                Votre Prompt ✍️
-              </label>
-              <span className={`text-xs font-bold ${isOverLimit ? 'text-red-500' : 'text-slate-500'}`}>
-                {generatedLink ? generatedLink.length : 0} / {MAX_LENGTH}
-              </span>
+        <div class="p-6 space-y-6">
+            <!-- Saisie du prompt -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label class="block text-sm font-medium text-slate-300">Votre Prompt ✍️</label>
+                    <span id="charCount" class="text-xs font-bold text-slate-500">0 / 7730</span>
+                </div>
+                <textarea id="promptInput" autofocus
+                    class="w-full h-40 px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none placeholder-slate-500 transition-all"
+                    placeholder="Collez votre prompt ici..."></textarea>
             </div>
-            <textarea
-              className={`w-full h-40 px-4 py-3 bg-slate-900 border rounded-xl text-slate-200 focus:outline-none focus:ring-2 resize-none placeholder-slate-500 transition-all ${
-                isOverLimit 
-                  ? 'border-red-500 ring-2 ring-red-500 bg-red-950/30 focus:ring-red-500' 
-                  : 'border-slate-700 focus:ring-emerald-500 focus:border-transparent'
-              }`}
-              placeholder="Collez votre prompt ici..."
-              value={prompt}
-              onChange={handleChange}
-              autoFocus
-            />
-          </div>
 
-          {/* Résultat */}
-          <div className="space-y-2 pt-4 border-t border-slate-700">
-            <label className="block text-sm font-medium text-slate-300">
-              Lien Généré 🔗
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={generatedLink}
-                className="flex-1 px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-300 text-sm focus:outline-none truncate"
-                placeholder="Le lien apparaîtra ici..."
-              />
-              
-              <button
-                onClick={handleCopy}
-                disabled={!generatedLink || isOverLimit}
-                className="p-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[40px]"
-                title="Copier le lien"
-              >
-                {copied ? <Check size={18} className="text-emerald-400" /> : <Copy size={18} />}
-              </button>
-              
-              <a
-                href={isOverLimit ? '#' : generatedLink}
-                target={isOverLimit ? '_self' : '_blank'}
-                rel="noopener noreferrer"
-                className={`p-2 rounded-lg flex items-center justify-center min-w-[40px] transition-colors ${
-                  generatedLink && !isOverLimit
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
-                    : 'bg-slate-800 text-slate-600 cursor-not-allowed'
-                }`}
-                title="Ouvrir dans ChatGPT"
-                onClick={(e) => (!generatedLink || isOverLimit) && e.preventDefault()}
-              >
-                <ExternalLink size={18} />
-              </a>
+            <!-- Résultat -->
+            <div class="space-y-2 pt-4 border-t border-slate-700">
+                <label class="block text-sm font-medium text-slate-300">Lien Généré 🔗</label>
+                <div class="flex gap-2">
+                    <input id="linkOutput" type="text" readonly
+                        class="flex-1 px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-300 text-sm focus:outline-none truncate"
+                        placeholder="Le lien apparaîtra ici...">
+                    
+                    <button id="copyBtn" disabled
+                        class="p-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[40px]" title="Copier le lien">
+                        <svg id="iconCopy" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        <svg id="iconCheck" class="hidden text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </button>
+                    
+                    <a id="openBtn" href="#" target="_blank" rel="noopener noreferrer"
+                        class="p-2 bg-slate-800 text-slate-600 cursor-not-allowed rounded-lg flex items-center justify-center min-w-[40px] transition-colors" title="Ouvrir dans ChatGPT">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+                    </a>
+                </div>
             </div>
-          </div>
-          
-          {/* Note sur les limites */}
-          {isOverLimit && (
-            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3 text-xs text-red-200/90 flex gap-3 items-start shadow-sm shadow-red-900/50">
-              <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={16} />
-              <p>
-                <strong className="font-bold text-red-400">Limite dépassée !</strong> Ce lien contient {generatedLink.length} caractères. Au-delà de {MAX_LENGTH}, ChatGPT va bloquer la requête (Erreur 414 URI Too Long).
-              </p>
+            
+            <!-- Note sur les limites -->
+            <div id="limitWarning" class="hidden bg-red-900/20 border border-red-500/50 rounded-lg p-3 text-xs text-red-200/90 flex gap-3 items-start shadow-sm shadow-red-900/50">
+                <svg class="text-red-500 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <p>
+                    <strong class="font-bold text-red-400">Limite dépassée !</strong> Ce lien contient <span id="warnCharCount"></span> caractères. Au-delà de 7730, ChatGPT va bloquer la requête (Erreur 414 URI Too Long).
+                </p>
             </div>
-          )}
         </div>
-      </div>
     </div>
-  );
-}
 
+    <script>
+        const CHATGPT_URL = 'https://chatgpt.com/?q=';
+        const MAX_LENGTH = 7730;
+
+        const promptInput = document.getElementById('promptInput');
+        const linkOutput = document.getElementById('linkOutput');
+        const charCount = document.getElementById('charCount');
+        const copyBtn = document.getElementById('copyBtn');
+        const openBtn = document.getElementById('openBtn');
+        const limitWarning = document.getElementById('limitWarning');
+        const warnCharCount = document.getElementById('warnCharCount');
+        const iconCopy = document.getElementById('iconCopy');
+        const iconCheck = document.getElementById('iconCheck');
+
+        let previousText = '';
+
+        promptInput.addEventListener('input', (e) => {
+            const currentText = e.target.value;
+            const diff = currentText.length - previousText.length;
+            
+            if (currentText.trim() === '') {
+                updateUI('', 0);
+                previousText = currentText;
+                return;
+            }
+
+            const encodedPrompt = encodeURIComponent(currentText);
+            const generatedLink = `${CHATGPT_URL}${encodedPrompt}`;
+            const linkLength = generatedLink.length;
+
+            updateUI(generatedLink, linkLength);
+
+            // Détection du collage massif (> 20 caractères d'un coup)
+            if (diff > 20 && linkLength <= MAX_LENGTH) {
+                window.open(generatedLink, '_blank');
+            }
+
+            previousText = currentText;
+        });
+
+        function updateUI(link, length) {
+            linkOutput.value = link;
+            charCount.textContent = `${length} / ${MAX_LENGTH}`;
+            warnCharCount.textContent = length;
+
+            const isOverLimit = length > MAX_LENGTH;
+
+            // Mise à jour des couleurs d'erreur
+            if (isOverLimit) {
+                promptInput.classList.remove('border-slate-700', 'focus:ring-emerald-500');
+                promptInput.classList.add('border-red-500', 'ring-2', 'ring-red-500', 'bg-red-950/30', 'focus:ring-red-500');
+                charCount.classList.replace('text-slate-500', 'text-red-500');
+                limitWarning.classList.remove('hidden');
+                
+                openBtn.href = '#';
+                openBtn.target = '_self';
+                openBtn.className = 'p-2 bg-slate-800 text-slate-600 cursor-not-allowed rounded-lg flex items-center justify-center min-w-[40px] transition-colors';
+                copyBtn.disabled = true;
+            } else {
+                promptInput.classList.add('border-slate-700', 'focus:ring-emerald-500');
+                promptInput.classList.remove('border-red-500', 'ring-2', 'ring-red-500', 'bg-red-950/30', 'focus:ring-red-500');
+                charCount.classList.replace('text-red-500', 'text-slate-500');
+                limitWarning.classList.add('hidden');
+                
+                if (length > 0) {
+                    openBtn.href = link;
+                    openBtn.target = '_blank';
+                    openBtn.className = 'p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg flex items-center justify-center min-w-[40px] transition-colors';
+                    copyBtn.disabled = false;
+                } else {
+                    openBtn.href = '#';
+                    openBtn.className = 'p-2 bg-slate-800 text-slate-600 cursor-not-allowed rounded-lg flex items-center justify-center min-w-[40px] transition-colors';
+                    copyBtn.disabled = true;
+                }
+            }
+        }
+
+        copyBtn.addEventListener('click', () => {
+            if (!linkOutput.value || linkOutput.value.length > MAX_LENGTH) return;
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = linkOutput.value;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                iconCopy.classList.add('hidden');
+                iconCheck.classList.remove('hidden');
+                setTimeout(() => {
+                    iconCopy.classList.remove('hidden');
+                    iconCheck.classList.add('hidden');
+                }, 2000);
+            } catch (e) {
+                console.error("Échec de la copie", e);
+            }
+            document.body.removeChild(textArea);
+        });
+    </script>
+</body>
+</html>
 
